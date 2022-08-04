@@ -21,9 +21,7 @@ object Day26Exercise extends App {
 
   val newDf = df.withColumn("desc_split", split(col("Description"), " "))
     .withColumn("desc_size", size(col("desc_split")))
-    .select("Description",
-      "InvoiceNo", "StockCode","Quantity", "InvoiceDate", "UnitPrice", "CustomerID", "Country",
-      "desc_split", "desc_size")
+    .select("*","desc_split", "desc_size")
     .where("desc_size >= 3")
 
 
