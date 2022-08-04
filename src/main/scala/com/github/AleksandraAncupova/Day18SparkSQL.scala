@@ -1,6 +1,7 @@
 package com.github.AleksandraAncupova
 
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.functions.desc
 
 object Day18SparkSQL extends App {
   println(s"Reading CSV with Scala version: ${util.Properties.versionNumberString}")
@@ -45,10 +46,10 @@ object Day18SparkSQL extends App {
   flightData2014.createOrReplaceTempView("flight_data_2014")
 
   val sqlWay2014 = spark.sql("""
-  SELECT DEST_COUNTRY_NAME, count(*)
+  SELECT DEST_COUNTRY_NAME, SUM(count) as flight
   FROM flight_data_2014
   GROUP BY DEST_COUNTRY_NAME
-  ORDER BY count(*) DESC
+  ORDER BY flight DESC
   """)
 
   // this is the other approach
@@ -57,6 +58,25 @@ object Day18SparkSQL extends App {
   sqlWay2014.show(10)
 
 
+  flightData2015
+    .groupBy("DEST_COUNTRY_NAME")
+    .sum("count")
+    .withColumnRenamed("sum(count)", "dest_total")
+    .sort(desc("dest_total"))
+    .limit(5)
+    .show()
+
+  flightData2015
+    .groupBy("DEST_COUNTRY_NAME")
+    .sum("count")
+    .withColumnRenamed("sum(count)", "dest_total")
+    .sort(desc("dest_total"))
+    .toDF()
+    .write
+    .format("csv")
+    .mode("overwrite")
+    // .option("sep", "\t")
+    .save("src/resources/flight-data/csv/top_destinations_2015.tsv")
 
 
 }

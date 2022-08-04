@@ -9,7 +9,7 @@ object Day24Strings extends App {
 
   val filePath = "src/resources/retail-data/by-day/2010-12-01.csv"
 
-  val df = SparkUtil.readCSVwithView(spark, filePath)
+  val df = SparkUtil.readDataWithView(spark, filePath)
 
   // working with string
   df.select(col("Description"),

@@ -1,6 +1,6 @@
 package com.github.AleksandraAncupova
 
-import com.github.AleksandraAncupova.Day22MoreTransformations.getDataFramaStats
+import com.github.AleksandraAncupova.Day22MoreTransformations.{dataFrames, getDataFramaStats}
 import org.apache.spark.sql.functions.col
 
 object Day22Exercise extends App {
@@ -30,6 +30,7 @@ object Day22Exercise extends App {
   dfSample.show(5)
   println(s"We got ${dfSample.count()} samples")
 
+
   // TODO a split of 2,9,5 for the dataset
   val randomDfs = df.randomSplit(Array(2, 9, 5), seed)
   for((dFrame, i) <- randomDfs.zipWithIndex) {
@@ -39,5 +40,10 @@ object Day22Exercise extends App {
   val splitPercentages = getDataFramaStats(randomDfs, df)
   println("Here are the the split in percentages:")
   splitPercentages.foreach(println)
+
+  val unionFirst2 =  randomDfs(0).union( randomDfs(1))
+  unionFirst2.show(5)
+
+
 
 }

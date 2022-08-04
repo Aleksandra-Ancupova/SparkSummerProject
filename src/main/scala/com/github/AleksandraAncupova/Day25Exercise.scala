@@ -8,7 +8,7 @@ object Day25Exercise extends App {
 
   val filePath = "src/resources/retail-data/by-day/2011-03-01.csv"
 
-  val df = SparkUtil.readCSVwithView(spark, filePath)
+  val df = SparkUtil.readDataWithView(spark, filePath)
 
   //TODO add new column with current date, timestamp, day diff and month diff
 
