@@ -1,7 +1,5 @@
 package com.github.AleksandraAncupova
 
-import com.github.AleksandraAncupova.Day27Aggregations.spark
-import com.github.AleksandraAncupova.Day28StatsFun.{df, numDF}
 import com.github.AleksandraAncupova.SparkUtil.{getSpark, readDataWithView}
 import org.apache.spark.sql.functions.{collect_list, collect_set, corr, covar_pop, kurtosis, mean, skewness, stddev_pop, stddev_samp, var_pop, var_samp}
 
