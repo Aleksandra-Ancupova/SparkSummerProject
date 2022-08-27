@@ -49,7 +49,7 @@ object FinalProjectModel extends App {
     val predictDF = lrModel.transform(newDF)
     predictDF.show()
 
-    //evaluation, need function
+//    evaluation, need function
     println(lrModel.summary.meanAbsoluteError)
     println(lrModel.coefficients)
 
