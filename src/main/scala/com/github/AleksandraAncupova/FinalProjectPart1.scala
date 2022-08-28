@@ -6,11 +6,26 @@ import org.apache.spark.sql.functions.{avg, col, countDistinct, desc, expr, lit,
 
 object FinalProjectPart1 extends App {
 
-  val spark = getSpark("Sparky")
+  for ((arg, i) <- args.zipWithIndex) {
+    println(s" argument No. $i, argument: $arg")
+  }
+
+  if (args.length >= 1) {
+    println()
+  }
+
   val filePath = "src/resources/csv/stock_prices_.csv"
+  //so our src will either be default file or the first argument supplied by user
+  val src = if (args.length >= 1) args(0) else filePath
+
+  println(s"My Source file will be $src")
+
+  // setting up Spark
+  val spark = getSpark("Sparky")
+ // val filePath = "src/resources/csv/stock_prices_.csv"
 
   //Load up stock_prices.csv as a DataFrame
-  val df = readDataWithView(spark, filePath)
+  val df = readDataWithView(spark, src)
 
   // Compute the average daily return of every stock for every date
   val dfWithReturn = df.withColumn("dailyReturn", expr("round((close - open)/open * 100, 2)"))
@@ -21,21 +36,22 @@ object FinalProjectPart1 extends App {
     .rowsBetween(Window.unboundedPreceding, Window.currentRow)
 
   val avgDailyReturn = avg(col("dailyReturn")).over(windowSpec)
-  val cumReturn = sum(col("dailyReturn")).over(windowSpec)
+  val cumDailyReturn = sum(col("dailyReturn")).over(windowSpec)
 
-  val dfWithAvgReturn= dfWithReturn.select(col("*"),
+  val dfWithDifReturns= dfWithReturn.select(col("*"),
     round(avgDailyReturn,2).alias("avgDailyReturn"),
-    round(cumReturn,2).alias("totalReturn"))
+    round(cumDailyReturn,2).alias("totalReturn"))
 
-  dfWithAvgReturn.show()
+  println("Table1. Date, open, high, low, close prices, daily return, average and cumulative return of 5 stocks each day:")
+  dfWithDifReturns.show()
 
   // Save the results to the file as Parquet(CSV and SQL are optional)
-  dfWithAvgReturn.write
+  dfWithDifReturns.write
      .format("parquet")
      .mode("overwrite")
      .save("src/resources/final/my-parquet-file.parquet")
 
-  dfWithAvgReturn.write
+  dfWithDifReturns.write
       .format("csv")
       .mode("overwrite")
       .option("sep", "\t")
@@ -58,34 +74,36 @@ object FinalProjectPart1 extends App {
     .agg(avg("frequency").alias("avgTradingFrequency"))
     .orderBy(desc("avgTradingFrequency"))
 
+  println("Table2. Trading frequency of stocks, based on closing price * volume:")
   tradeFrequency.show()
 
   val mostTraded = tradeFrequency.collect().map(_.getString(0))
-  println(s"${mostTraded.head} stock was the most frequently traded throughout given period")
+  println(s"${mostTraded.head} stock was the most frequently traded throughout given period. \n")
 
 
   //Which stock was the most volatile as measured by annualized standard deviation of daily returns?
-
-  df.agg(max("date")).show()
-  df.agg(min("date")).show()
+  println("Calculating the volalitily of stocks for given period:")
 
   val SDForDailyReturn = stddev(col("dailyReturn")).over(windowSpec)
 
   val dfVolatile = dfWithReturn.select(col("*"),
     round(SDForDailyReturn,2).alias("stDevOfDailyReturn"))
 
-  //counting for many periods/date to calculate volatility
+  //counting how many periods/dates to calculate volatility
   val dateCount = df.select(countDistinct("date")).collect().map(_.toSeq)
   val dateCountInt = dateCount.head.head
-  println(dateCountInt)
+  println(s"The total number of trading days is: $dateCountInt \n")
 
-  val testDF = dfVolatile.withColumn("dateCount", lit(dateCountInt))
-  testDF.show()
+  val dfVolatileWithDays = dfVolatile.withColumn("dateCount", lit(dateCountInt))
 
-  val dfYearlyVolatility = testDF.where("date = '2016-11-02'")
+  val maxDate = df.agg(max("date")).collect().map(_.getString(0)).head
+  println(s"Last day of the period is: $maxDate \n")
+
+  val dfYearlyVolatility = dfVolatileWithDays.where(col("date") === maxDate)
     .withColumn("volatility", expr("round(stDevOfDailyReturn * sqrt(dateCount), 2)"))
     .orderBy(desc("volatility"))
 
+  println("Table3. Accumulated Standard Deviation and Volatility for all stocks for given period:")
   dfYearlyVolatility.show()
 
   val volatilityArray = dfYearlyVolatility.collect().map(_.toSeq)
