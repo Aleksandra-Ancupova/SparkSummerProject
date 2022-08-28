@@ -9,20 +9,17 @@ object FinalProjectPart1 extends App {
   for ((arg, i) <- args.zipWithIndex) {
     println(s" argument No. $i, argument: $arg")
   }
-
   if (args.length >= 1) {
     println()
   }
 
   val filePath = "src/resources/csv/stock_prices_.csv"
-  //so our src will either be default file or the first argument supplied by user
   val src = if (args.length >= 1) args(0) else filePath
 
   println(s"My Source file will be $src")
 
   // setting up Spark
   val spark = getSpark("Sparky")
- // val filePath = "src/resources/csv/stock_prices_.csv"
 
   //Load up stock_prices.csv as a DataFrame
   val df = readDataWithView(spark, src)
@@ -80,9 +77,8 @@ object FinalProjectPart1 extends App {
   val mostTraded = tradeFrequency.collect().map(_.getString(0))
   println(s"${mostTraded.head} stock was the most frequently traded throughout given period. \n")
 
-
   //Which stock was the most volatile as measured by annualized standard deviation of daily returns?
-  println("Calculating the volalitily of stocks for given period:")
+  println("Calculating the volatility of stocks for given period:")
 
   val SDForDailyReturn = stddev(col("dailyReturn")).over(windowSpec)
 

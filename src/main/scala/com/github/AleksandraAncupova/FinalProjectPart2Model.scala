@@ -1,13 +1,13 @@
 package com.github.AleksandraAncupova
 
-import com.github.AleksandraAncupova.SparkUtil.{getSpark, readDataWithView}
+import com.github.AleksandraAncupova.SparkUtil.{getSpark, myRound, readDataWithView}
 import org.apache.spark.ml.feature.RFormula
 import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{col, lead}
 
-object FinalTest extends App {
+object FinalProjectPart2Model extends App {
 
   for ((arg, i) <- args.zipWithIndex) {
     println(s" argument No. $i, argument: $arg")
@@ -17,11 +17,8 @@ object FinalTest extends App {
   }
 
   val filePath = "src/resources/csv/stock_prices_.csv"
-  //so our src will either be default file or the first argument supplied by user
   val src = if (args.length >= 1) args(0) else filePath
-
   println(s"My Source file will be $src")
-
 
   val spark = getSpark("Sparky")
 
@@ -41,19 +38,16 @@ object FinalTest extends App {
   /**
    * main loop that creates and assesses model for each stock
    */
-
   def createAndAssessModel(): Unit = {
   for (st <- strings) {
     //preprocessing data
     val myDF = preprocessing(df, st)
-    myDF.show()
 
     //building a model, predicting
     val rFormula = new RFormula()
       .setFormula("nextDayClose ~ open + high + low + close")
 
     val newDF = rFormula.fit(myDF).transform(myDF)
-    newDF.show()
 
     val Array(train, test) = newDF.randomSplit(Array(0.8, 0.2))
 
@@ -68,7 +62,6 @@ object FinalTest extends App {
   }
 
   }
-
 
   /**
    * creates a new column for a dataframe with next day close price
@@ -93,12 +86,15 @@ object FinalTest extends App {
    * @param model Linear Regression Model
    */
   def testLinearRegression(model: LinearRegressionModel): Unit = {
-    val intercept = model.intercept
+    val intercept = myRound(model.intercept,2)
     val coefficient = model.coefficients
-    val mae = model.summary.meanAbsoluteError
-    val mse = model.summary.meanSquaredError
-    println(s"The model has following intercept: $intercept; coefficients: $coefficient; MAE: $mae; MSE: $mse")
-
+    val c1 = myRound(coefficient(0), 2)
+    val c2 = myRound(coefficient(1), 2)
+    val c3 = myRound(coefficient(2), 2)
+    val c4 = myRound(coefficient(3), 2)
+    val mae = myRound(model.summary.meanAbsoluteError,2)
+    val mse = myRound(model.summary.meanSquaredError,2)
+    println(s"The model has following intercept: $intercept; coefficients: $c1, $c2, $c3, $c4; MAE: $mae; MSE: $mse")
   }
 
   createAndAssessModel()
