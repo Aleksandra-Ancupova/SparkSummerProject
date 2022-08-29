@@ -1,0 +1,10 @@
+SELECT * FROM
+`bigquery-public-data.usa_names.usa_1910_2013`
+LIMIT 20;
+
+SELECT DISTINCT state, name
+FROM `bigquery-public-data.usa_names.usa_1910_2013`
+ORDER BY name;
+
+SELECT count(name) TotalNameCount
+FROM `bigquery-public-data.usa_names.usa_1910_2013`;
