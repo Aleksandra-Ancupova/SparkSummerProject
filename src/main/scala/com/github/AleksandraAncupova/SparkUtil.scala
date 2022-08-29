@@ -29,7 +29,8 @@ object SparkUtil {
                        viewName: String = "dfTable",
                        header: Boolean = true,
                        inferSchema: Boolean = true,
-                       printSchema: Boolean = true): DataFrame = {
+                       printSchema: Boolean = true,
+                       cacheOn: Boolean = true): DataFrame = {
     val df = spark.read.format(source)
       .option("header", header.toString)
       .option("inferSchema", inferSchema.toString)
@@ -39,8 +40,15 @@ object SparkUtil {
       println(s"Created Temporary View for SQL queries called: $viewName")
     }
     if (printSchema) df.printSchema()
+    if (cacheOn) df.cache()
     df
   }
 
+
+  def myRound(n: Double, precision: Int = 0): Double = {
+   val multiplier = Math.pow(10, precision) //so precision 0 will give us 10 to 0 which is 1
+    //    n.round //only 0 precision
+    (n * multiplier).round / multiplier //we utilize the built in round
+  }
 
 }
